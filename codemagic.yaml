@@ -36,10 +36,12 @@ workflows:
           keychain initialize
       - name: Install Flutter dependencies
         script: |
+          cd $CM_BUILD_DIR
           flutter pub get
       - name: Install CocoaPods
         script: |
-          cd ios && pod install
+          cd $CM_BUILD_DIR/ios
+          pod install
       - name: Set up code signing
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
