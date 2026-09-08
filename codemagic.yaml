@@ -1,7 +1,7 @@
 workflows:
   ios-release:
     name: iOS Release (App Store)
-    max_build_duration: 60
+    max_build_duration: 120
     instance_type: mac_mini_m1
     environment:
       flutter: stable
@@ -31,9 +31,6 @@ workflows:
         - pattern: "v*"
           include: true
     scripts:
-      - name: Set up keychain
-        script: |
-          keychain initialize
       - name: Install Flutter dependencies
         script: |
           cd $CM_BUILD_DIR
@@ -42,16 +39,23 @@ workflows:
         script: |
           cd $CM_BUILD_DIR/ios
           pod install
-      - name: Set up code signing
+      - name: Set up keychain
+        script: |
+          keychain initialize
+      - name: Fetch signing files
         script: |
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-      - name: Use system default keychain
+      - name: Add certificates to keychain
         script: |
           keychain add-certificates
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
       - name: Build IPA
         script: |
+          cd $CM_BUILD_DIR
           flutter build ipa --release \
             --export-options-plist=$CM_EXPORT_DIR/export_options.plist
       - name: Publish to App Store Connect
