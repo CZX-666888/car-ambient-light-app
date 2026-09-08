@@ -1,0 +1,72 @@
+workflows:
+  ios-release:
+    name: iOS Release (App Store)
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.carambient.car_ambient_light"
+        APP_NAME: "Car Ambient Light"
+        # App Store Connect API 密钥（在Codemagic环境变量中配置，不要写在这里）
+        # APP_STORE_CONNECT_KEY_IDENTIFIER
+        # APP_STORE_CONNECT_ISSUER_ID
+        # APP_STORE_CONNECT_PRIVATE_KEY
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.carambient.car_ambient_light
+    triggering:
+      events:
+        - push
+        - tag
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      tag_patterns:
+        - pattern: "v*"
+          include: true
+    scripts:
+      - name: Set up keychain
+        script: |
+          keychain initialize
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install
+      - name: Set up code signing
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+      - name: Use system default keychain
+        script: |
+          keychain add-certificates
+      - name: Increment build number
+        script: |
+          cd $CM_BUILD_DIR/ios
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID") + 1))
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=$CM_EXPORT_DIR/export_options.plist
+      - name: Publish to App Store Connect
+        script: |
+          app-store-connect publish \
+            --path build/ios/ipa/*.ipa \
+            --testflight
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - $CM_EXPORT_DIR/export_options.plist
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+      email:
+        recipients:
+          - your-email@example.com

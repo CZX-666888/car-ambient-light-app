@@ -1,0 +1,32 @@
+name: car_ambient_light
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  cupertino_icons: ^1.0.8
+  flutter_blue_plus: ^2.3.12
+  provider: ^6.1.5+1
+  permission_handler: 11.3.1
+  shared_preferences: ^2.3.2
+  webview_flutter: ^4.10.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - assets/manual.html
+    - assets/bulb_transparent.png
