@@ -10,10 +10,15 @@ workflows:
       vars:
         BUNDLE_ID: "com.carambient.car_ambient_light"
         APP_NAME: "Car Ambient Light"
-        # App Store Connect API 密钥（在Codemagic环境变量中配置，不要写在这里）
-        # APP_STORE_CONNECT_KEY_IDENTIFIER
-        # APP_STORE_CONNECT_ISSUER_ID
-        # APP_STORE_CONNECT_PRIVATE_KEY
+        APP_STORE_CONNECT_KEY_IDENTIFIER: "Q3SD5836YH"
+        APP_STORE_CONNECT_ISSUER_ID: "2c6d7ea1-e05d-49a3-b812-545ef1efcbbc"
+        APP_STORE_CONNECT_PRIVATE_KEY: |
+          -----BEGIN PRIVATE KEY-----
+          MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgwMJ+D8QA7XIweFIe
+          u4m3vGIv2ItACMYmzElvkgFx4BOgCgYIKoZIzj0DAQehRANCAAQlI5bm1fJIfQyo
+          7nug9FDNb6Z2yO+Tdh5M9YwQkQTRqBGuIoGa7Nq4FKJIooziqKRv0HMjhozR7FP9
+          QRyGGunM
+          -----END PRIVATE KEY-----
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.carambient.car_ambient_light
@@ -46,10 +51,6 @@ workflows:
       - name: Use system default keychain
         script: |
           keychain add-certificates
-      - name: Increment build number
-        script: |
-          cd $CM_BUILD_DIR/ios
-          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$BUNDLE_ID") + 1))
       - name: Build IPA
         script: |
           flutter build ipa --release \
@@ -62,11 +63,3 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - $CM_EXPORT_DIR/export_options.plist
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-      email:
-        recipients:
-          - your-email@example.com
