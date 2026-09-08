@@ -19,9 +19,6 @@ workflows:
           7nug9FDNb6Z2yO+Tdh5M9YwQkQTRqBGuIoGa7Nq4FKJIooziqKRv0HMjhozR7FP9
           QRyGGunM
           -----END PRIVATE KEY-----
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.carambient.carambientlight
     triggering:
       events:
         - push
