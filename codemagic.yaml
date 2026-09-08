@@ -19,6 +19,35 @@ workflows:
           7nug9FDNb6Z2yO+Tdh5M9YwQkQTRqBGuIoGa7Nq4FKJIooziqKRv0HMjhozR7FP9
           QRyGGunM
           -----END PRIVATE KEY-----
+        CERTIFICATE_PRIVATE_KEY: |
+          -----BEGIN PRIVATE KEY-----
+          MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCT1FnY/61+WeWq
+          kj7MV2RNtHE96zvUE6mgRFcLkh4m/xA70UUwtQsIJeWZzEBb27JpBdHVVBBRPzGa
+          MAmvkEGe0eqNZ6auvqWxCoheozw8vCyHuhIwKuAxFh723klHUTqonJb37Dsbii5u
+          i5QH4Pis6OrmOZicKS2Q7nhYAYyEOxtBiLsNvSur4Nksh/CHJJ19UJ8UwyvwSHFe
+          vWV55QFMmgjuP2L0PPDVXE7Nw0j+T3+RYddcN4vy6LLadM/k94V/X79YO/CcLY3T
+          og/5pCr/WnKmuEy87nrvQL8uu6OFrziL/SlptBcSDgFaiUQ66XBA4ImTUF0UH2qb
+          osB0XnARAgMBAAECggEAE2j1Zx2jDQ0Gr8/F+RSccet4VvX1BBKU2hs/BqDn3pzs
+          573BhPSwfyBitj/wT19YXJvMAmOoRNK0U5dtHiUlyJGtZ2WtqBIWNVm5sBtkxGC8
+          xBF1Y+etSiSqaiWjn36V4h+1XtYgqKwLDq67ABHU9PccKKB1XkO13OrC2GNTrOTW
+          wN1E6B23uJZfPVdbO7v1zZnJBhDb020hisAzF2oxxZNQfSsnmbWagpR//53g+3ud
+          VY/wxq4ix5t+TR+Zd70qdJtKplRt+6lcYou65I37U14moZmlIEiZIP5blJfsi78A
+          vCsz0X/EIdz1ULyPK+SHQHzqpzVjxiIg+QtSAfufMQKBgQDJN7DFDVcv3ObkZU6t
+          OiCCvdW7lFTw3TslhVRqbC6/r8JF+D75r57JqglzN+Kymg9sIj1kaynWwx22jQtu
+          SuZq0EsoNNmhg9gOkmToRLKZCJdeot61qbXcIc1NehRCYBdAPdC7svhZaaUvdQVu
+          K3FzltFQJjKOp4RZon5piEQ+FQKBgQC8E6kU3ukvxd69a/ZWdQ3RGYQm8x7zKOtp
+          bKa3iD6JQgNX9w2vx6k+R5YEMOETTTxVNNqKINW76vkDAfBANku0y+LXK/q9SXD0
+          gMCEyVsgk2Hibc/Pe8V5mOXQ/zFTpmzZAMuXnGMYrLDW9pDHvLZ1PbvzEDw2Jb5o
+          BFlaTgVlDQKBgFwfwDHnsrQ6KggFjejnhPz21wUjm2QPlcXO7mAvGZQvbv3D82kz
+          i7p+vAbhXkwxFsCGSJ9SJPyrpk3u833Skv3yUYad88nr6B57zfE9iptgAJWWceqw
+          QZAAddN0AhSFk/+YjZlyDhw5ryQ0KoFPKIkoUrqkUl9XuNOk/sVoWv4lAoGAap72
+          rqdEKNoS0O3Ag/jt8Ul22qHfPNhIxMZcqRUq5qMuxBKBhtI4xt7MU+nl3wxdFKzW
+          65F7uYGW0zapHa3qMz+WhIchKWfWCjZnbZ+88nW6+yNnuOcg5zNfraDONO7XLBpA
+          UN3Oa/GSevrizujTwxlRUJU2nTe+frdgdEpg0o0CgYA9IwwzE3xvOl1Ep180KhAY
+          e0nT4G/fSPFbiQ5bFe4nGZgasU7LJpoEgPrklmHukIePd4F+Pcg7otrKwoktghtn
+          mvxEEMHGTReAVCIMjFTWC8ULin//d3f3JVlOkseNrEbW6uIkkAle9m/91NidtKoY
+          E6fI64m6oPD81upm83CV/A==
+          -----END PRIVATE KEY-----
     triggering:
       events:
         - push
