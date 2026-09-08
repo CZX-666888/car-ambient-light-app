@@ -8,7 +8,7 @@ workflows:
       xcode: latest
       cocoapods: default
       vars:
-        BUNDLE_ID: "com.carambient.car_ambient_light"
+        BUNDLE_ID: "com.carambient.carambientlight"
         APP_NAME: "Car Ambient Light"
         APP_STORE_CONNECT_KEY_IDENTIFIER: "Q3SD5836YH"
         APP_STORE_CONNECT_ISSUER_ID: "2c6d7ea1-e05d-49a3-b812-545ef1efcbbc"
@@ -21,7 +21,7 @@ workflows:
           -----END PRIVATE KEY-----
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.carambient.car_ambient_light
+        bundle_identifier: com.carambient.carambientlight
     triggering:
       events:
         - push
