@@ -90,8 +90,7 @@ workflows:
       - name: Publish to App Store Connect
         script: |
           app-store-connect publish \
-            --path build/ios/ipa/*.ipa \
-            --testflight
+            --path build/ios/ipa/*.ipa
     artifacts:
       - build/ios/ipa/*.ipa
       - /Users/builder/export_options.plist
