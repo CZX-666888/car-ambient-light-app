@@ -86,7 +86,7 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           flutter build ipa --release \
-            --export-options-plist=$CM_EXPORT_DIR/export_options.plist
+            --export-options-plist=/Users/builder/export_options.plist
       - name: Publish to App Store Connect
         script: |
           app-store-connect publish \
@@ -94,4 +94,4 @@ workflows:
             --testflight
     artifacts:
       - build/ios/ipa/*.ipa
-      - $CM_EXPORT_DIR/export_options.plist
+      - /Users/builder/export_options.plist
