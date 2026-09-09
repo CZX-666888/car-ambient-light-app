@@ -86,6 +86,7 @@ workflows:
         script: |
           cd $CM_BUILD_DIR
           flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
             --export-options-plist=/Users/builder/export_options.plist
       - name: Publish to App Store Connect
         script: |
