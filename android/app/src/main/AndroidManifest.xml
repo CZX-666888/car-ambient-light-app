@@ -10,7 +10,7 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
     <application
-        android:label="汽车氛围灯"
+        android:label="智能氛围灯"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
