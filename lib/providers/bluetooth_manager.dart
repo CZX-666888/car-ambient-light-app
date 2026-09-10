@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -274,13 +275,20 @@ class BluetoothManager extends ChangeNotifier {
     try { FlutterBluePlus.stopScan(); } catch (_) {}
   }
 
-  /// 请求蓝牙权限
+  /// 请求蓝牙权限（iOS/Android 平台区分）
   Future<bool> requestPermissions() async {
-    final scanPermission = await Permission.bluetoothScan.request();
-    final connectPermission = await Permission.bluetoothConnect.request();
-    await Permission.locationWhenInUse.request();
-
-    _hasPermission = scanPermission.isGranted && connectPermission.isGranted;
+    if (Platform.isIOS) {
+      // iOS：蓝牙权限由 Info.plist 的 NSBluetoothAlwaysUsageDescription 触发
+      // 使用 Permission.bluetooth 对应 CoreBluetooth 权限；iOS BLE 扫描不需要位置权限
+      final btStatus = await Permission.bluetooth.request();
+      _hasPermission = btStatus.isGranted || btStatus.isLimited;
+    } else {
+      // Android 12+：运行时权限
+      final scanPermission = await Permission.bluetoothScan.request();
+      final connectPermission = await Permission.bluetoothConnect.request();
+      await Permission.locationWhenInUse.request();
+      _hasPermission = scanPermission.isGranted && connectPermission.isGranted;
+    }
     notifyListeners();
     return _hasPermission;
   }
@@ -303,6 +311,12 @@ class BluetoothManager extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 500));
     }
     if (_adapterState != BluetoothAdapterState.on) {
+      if (Platform.isIOS) {
+        // iOS 不允许 App 直接开启蓝牙，提示用户手动开启
+        _statusMessage = '蓝牙未开启，请在手机设置中打开蓝牙';
+        notifyListeners();
+        return;
+      }
       _statusMessage = '蓝牙未开启，请先打开手机蓝牙';
       notifyListeners();
       try {
@@ -351,11 +365,14 @@ class BluetoothManager extends ChangeNotifier {
 
   /// 连接设备并发现GATT服务
   Future<void> connect(BluetoothDevice device) async {
-    final connectPerm = await Permission.bluetoothConnect.request();
-    if (!connectPerm.isGranted) {
-      _statusMessage = '蓝牙连接权限被拒绝';
-      notifyListeners();
-      return;
+    if (!Platform.isIOS) {
+      // Android 12+ 需要蓝牙连接运行时权限；iOS 由 CoreBluetooth 统一管理
+      final connectPerm = await Permission.bluetoothConnect.request();
+      if (!connectPerm.isGranted) {
+        _statusMessage = '蓝牙连接权限被拒绝';
+        notifyListeners();
+        return;
+      }
     }
 
     _isConnecting = true;
