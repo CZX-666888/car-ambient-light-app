@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/light_state.dart';
@@ -33,6 +35,10 @@ class LightController extends ChangeNotifier {
 
   static const String _prefsPresetColorsKey = 'custom_preset_colors_v2';
 
+  // 发送/持久化防抖 Timer（合并高频更新，避免每帧直写 BLE 与磁盘）
+  Timer? _sendDebounceTimer;
+  Timer? _presetSaveTimer;
+
   LightController({required this.bluetoothManager}) {
     // 初始化所有分区状态
     for (final zone in LightZone.values) {
@@ -61,17 +67,20 @@ class LightController extends ChangeNotifier {
     }
   }
 
-  /// R006：保存用户自定义预设颜色
-  Future<void> _saveCustomPresetColors() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final colorStrings = _customPresetColors
-          .map((c) => c.value.toRadixString(16).padLeft(8, '0'))
-          .toList();
-      await prefs.setStringList(_prefsPresetColorsKey, colorStrings);
-    } catch (e) {
-      // 忽略
-    }
+  /// R006：保存用户自定义预设颜色（防抖：合并高频更新，避免拖动色盘时每帧写盘）
+  void _saveCustomPresetColors() {
+    _presetSaveTimer?.cancel();
+    _presetSaveTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final colorStrings = _customPresetColors
+            .map((c) => c.value.toRadixString(16).padLeft(8, '0'))
+            .toList();
+        await prefs.setStringList(_prefsPresetColorsKey, colorStrings);
+      } catch (e) {
+        // 忽略
+      }
+    });
   }
 
   /// R006：获取有效的预设颜色（用户自定义或默认）
@@ -194,20 +203,32 @@ class LightController extends ChangeNotifier {
   }
 
   /// 发送当前分区状态到蓝牙设备
+  /// 防抖：颜色/亮度拖动等高频场景会连续触发，合并为 30ms 只发最后一帧，
+  /// 避免 writeWithoutResponse 因发包间隔限制而丢包。
   Future<void> _sendCurrentState() async {
     if (!bluetoothManager.isConnected || bluetoothManager.writeCharacteristic == null) {
       return;
     }
 
-    final state = currentState;
-    final command = BluetoothProtocol.buildFromZoneState(state);
-    _lastSentCommand = BluetoothProtocol.toHexString(command);
-    await bluetoothManager.sendCommand(command);
-    notifyListeners();
+    _sendDebounceTimer?.cancel();
+    _sendDebounceTimer = Timer(const Duration(milliseconds: 30), () async {
+      final state = currentState;
+      final command = BluetoothProtocol.buildFromZoneState(state);
+      _lastSentCommand = BluetoothProtocol.toHexString(command);
+      await bluetoothManager.sendCommand(command);
+      notifyListeners();
+    });
   }
 
   /// 手动发送当前状态（用于连接后同步）
   Future<void> sendCurrentStateManual() async {
     await _sendCurrentState();
+  }
+
+  @override
+  void dispose() {
+    _sendDebounceTimer?.cancel();
+    _presetSaveTimer?.cancel();
+    super.dispose();
   }
 }

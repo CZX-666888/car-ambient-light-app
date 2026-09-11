@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:provider/provider.dart';
 import '../providers/bluetooth_manager.dart';
 import '../l10n/app_localizations.dart';
@@ -114,13 +115,18 @@ class _BluetoothSettingsScreenState extends State<BluetoothSettingsScreen> {
     );
   }
 
-  Widget _buildDeviceItem(device, bool isConnected, BluetoothManager manager, AppLocalizations l10n) {
+  Widget _buildDeviceItem(BluetoothDevice device, bool isConnected, BluetoothManager manager, AppLocalizations l10n) {
     final deviceName = manager.getDeviceName(device);
-    final scanResult = manager.scanResults.firstWhere(
-      (r) => r.device.remoteId == device.remoteId,
-      orElse: () => manager.scanResults.first,
-    );
-    final rssi = scanResult.rssi;
+    // 安全查找：扫描结果可能尚未包含已连接设备（如自动回连场景），
+    // 找不到时 RSSI 显示占位符，而不是在空列表上抛 StateError。
+    ScanResult? scanResult;
+    for (final r in manager.scanResults) {
+      if (r.device.remoteId == device.remoteId) {
+        scanResult = r;
+        break;
+      }
+    }
+    final rssiText = scanResult != null ? '${scanResult.rssi}dBm' : '--';
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -138,7 +144,7 @@ class _BluetoothSettingsScreenState extends State<BluetoothSettingsScreen> {
         ),
       ),
       subtitle: Text(
-        '${device.remoteId}  |  ${l10n.signal}: ${rssi}dBm',
+        '${device.remoteId}  |  ${l10n.signal}: $rssiText',
         style: const TextStyle(color: Colors.grey, fontSize: 12),
       ),
       trailing: Container(

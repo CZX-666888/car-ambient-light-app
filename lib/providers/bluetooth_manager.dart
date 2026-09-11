@@ -85,6 +85,11 @@ class BluetoothManager extends ChangeNotifier {
   bool _isUserInitiatedDisconnect = false; // Q036：标记用户主动断开，避免触发自动回连
   Timer? _disconnectDebounceTimer; // Q036：断连防抖，避免临时波动触发回连
 
+  // 蓝牙平台流订阅（dispose 时统一取消，避免 dispose 后 notifyListeners 抛异常）
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSub;
+  StreamSubscription<bool>? _isScanningSub;
+  StreamSubscription<List<ScanResult>>? _scanResultsSub;
+
   // R001：最后连接的设备信息
   String? _savedDeviceName;
   String? _savedDeviceId;
@@ -103,21 +108,31 @@ class BluetoothManager extends ChangeNotifier {
   }
 
   void _init() {
-    // 监听蓝牙适配器状态
-    FlutterBluePlus.adapterState.listen((state) {
+    // 监听蓝牙适配器状态：蓝牙从关闭/不可用变为打开时，重新拉起自动回连
+    _adapterStateSub = FlutterBluePlus.adapterState.listen((state) {
+      final wasOn = _adapterState == BluetoothAdapterState.on;
       _adapterState = state;
       notifyListeners();
+      if (!wasOn && state == BluetoothAdapterState.on) {
+        // 蓝牙重新打开：有历史设备且当前未连接/未在回连，则重新持续回连
+        if (_savedDeviceId != null &&
+            !_isConnected &&
+            !_isConnecting &&
+            !_isAutoReconnecting) {
+          autoReconnect();
+        }
+      }
     });
 
     // 监听扫描状态
-    FlutterBluePlus.isScanning.listen((scanning) {
+    _isScanningSub = FlutterBluePlus.isScanning.listen((scanning) {
       _isScanning = scanning;
       notifyListeners();
     });
 
     // 只订阅一次扫描结果（Q021：增量更新+节流，避免列表频繁跳动）
     if (!_scanResultsSubscribed) {
-      FlutterBluePlus.scanResults.listen((results) {
+      _scanResultsSub = FlutterBluePlus.scanResults.listen((results) {
         // 增量更新：只添加新设备，更新已有设备的RSSI，不每次clear
         for (final result in results) {
           final existingIndex = _scanResults.indexWhere(
@@ -191,9 +206,15 @@ class BluetoothManager extends ChangeNotifier {
     }
   }
 
-  /// R001：自动回连最后连接的设备（循环搜索，直到连接成功）
+  /// R001：自动回连最后连接的设备（两阶段循环：先密集搜索，后每20秒持续回连，直到连接成功）
   Future<void> autoReconnect() async {
-    if (_savedDeviceId == null || _isConnected || _isConnecting) return;
+    // _isAutoReconnecting 防重入：避免初始化与蓝牙状态回调同时触发多个回连循环
+    if (_savedDeviceId == null ||
+        _isConnected ||
+        _isConnecting ||
+        _isAutoReconnecting) {
+      return;
+    }
 
     _isAutoReconnecting = true;
     _stopAutoReconnect = false;
@@ -210,7 +231,13 @@ class BluetoothManager extends ChangeNotifier {
       }
 
       // Q021：循环搜索，使用独立的扫描结果监听，不清空全局列表
+      // 两阶段持续回连：前 denseAttempts(12) 轮密集搜索（每轮约5秒，约1分钟），
+      // 仍未连上则不停止，转为每 20 秒搜索一次的慢速回连，直到连上或被手动停止，
+      // 保证设备晚开机/晚进入范围时也能自动回连，同时控制长期耗电。
+      const int denseAttempts = 12;
+      int attempts = 0;
       while (!_stopAutoReconnect && !_isConnected) {
+        attempts++;
         // Q038：每次循环开始检查是否已停止
         if (_stopAutoReconnect) break;
 
@@ -254,9 +281,12 @@ class BluetoothManager extends ChangeNotifier {
           await sub?.cancel();
         }
 
-        // 没找到或连接失败，等待1秒后继续搜索
+        // 没找到或连接失败：前12轮每1秒快速重试，之后每20秒持续慢速回连
         if (!_stopAutoReconnect && !_isConnected) {
-          await Future.delayed(const Duration(seconds: 1));
+          final wait = attempts <= denseAttempts
+              ? const Duration(seconds: 1)
+              : const Duration(seconds: 20);
+          await Future.delayed(wait);
         }
       }
     } catch (e) {
@@ -406,6 +436,8 @@ class BluetoothManager extends ChangeNotifier {
               _isConnected = false;
               _connectedDevice = null;
               _writeCharacteristic = null;
+              // 必须先 cancel 再置空，否则旧订阅残留会导致假断连/回连风暴
+              _connectionSubscription?.cancel();
               _connectionSubscription = null;
               _statusMessage = '蓝牙已断开';
               notifyListeners();
@@ -531,6 +563,11 @@ class BluetoothManager extends ChangeNotifier {
   @override
   void dispose() {
     _scanNotifyTimer?.cancel();
+    _disconnectDebounceTimer?.cancel();
+    _connectionSubscription?.cancel();
+    _adapterStateSub?.cancel();
+    _isScanningSub?.cancel();
+    _scanResultsSub?.cancel();
     stopAutoReconnect();
     super.dispose();
   }

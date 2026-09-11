@@ -64,3 +64,8 @@ android/key.properties
 
 # Python scripts
 *.py
+
+# 签名私钥/证书，禁止提交
+*.pem
+*.p12
+*.mobileprovision

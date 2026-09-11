@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/light_controller.dart';
-import '../providers/bluetooth_manager.dart';
 import '../l10n/app_localizations.dart';
-import '../screens/bluetooth_settings_screen.dart';
 import '../screens/main_control_screen.dart';
 
 /// 预设颜色块 + RGB 显示（R006优化版，水平并排布局）
@@ -168,9 +166,11 @@ class PresetColors extends StatelessWidget {
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF2A2A2A),
-              title: Text(
-                l10n.rgbColorAdjust,
-                style: const TextStyle(color: Colors.white),
+              title: Center(
+                child: Text(
+                  l10n.rgbColorAdjust,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,

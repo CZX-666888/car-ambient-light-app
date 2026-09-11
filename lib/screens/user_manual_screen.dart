@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../l10n/app_localizations.dart';
 
@@ -26,8 +25,15 @@ class _UserManualScreenState extends State<UserManualScreen> {
             setState(() => _isLoading = false);
           },
         ),
-      )
-      ..loadFlutterAsset('assets/manual.html');
+      );
+    // 根据当前语言加载对应版本的说明书：简体中文加载中文版，其余语言加载英文版
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locale = Localizations.localeOf(context);
+      final asset = locale.languageCode == 'zh'
+          ? 'assets/manual.html'
+          : 'assets/manual_en.html';
+      _controller.loadFlutterAsset(asset);
+    });
   }
 
   @override

@@ -29,4 +29,5 @@ flutter:
   generate: true
   assets:
     - assets/manual.html
+    - assets/manual_en.html
     - assets/bulb_transparent.png

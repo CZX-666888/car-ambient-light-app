@@ -199,17 +199,18 @@ class _ColorWheelState extends State<ColorWheel> {
 
   /// Q020：检查蓝牙连接状态，未连接则提示并跳转连接界面
   bool _checkBluetooth() {
+    final l10n = AppLocalizations.of(context);
     final bluetoothManager = context.read<BluetoothManager>();
     if (!bluetoothManager.isConnected) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('蓝牙未连接'),
-          content: const Text('请先连接蓝牙设备，再使用此功能'),
+          title: Text(l10n.bluetoothNotConnected),
+          content: Text(l10n.pleaseConnectBluetooth),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -219,7 +220,7 @@ class _ColorWheelState extends State<ColorWheel> {
                   MaterialPageRoute(builder: (_) => const BluetoothSettingsScreen()),
                 );
               },
-              child: const Text('去连接'),
+              child: Text(l10n.goConnect),
             ),
           ],
         ),
@@ -292,13 +293,6 @@ class _ColorWheelState extends State<ColorWheel> {
     _isDraggingColor = false;
   }
 
-  /// Q033：首次按下严格判定（不允许侵入），内圈0.43*size，外圈0.47*size+20
-  bool _isInBrightnessRingStrict(double dx, double dy, double distance) {
-    final outer = widget.size * 0.47;
-    final inner = widget.size * 0.43;
-    return distance >= inner - 5 && distance <= outer + 20;
-  }
-
   /// Q033：拖动过程容差判定（允许侵入保持连贯），内圈0.30*size，外圈0.47*size+55
   bool _isInBrightnessRing(double dx, double dy, double distance) {
     final outer = widget.size * 0.47;
@@ -333,7 +327,6 @@ class _ColorWheelState extends State<ColorWheel> {
   void _updateColor(Offset position, LightController controller) {
     final center = widget.size / 2;
     final diskRadius = widget.size * 0.40;
-    final selectorRadius = 14.0; // 取色点半径
 
     final dx = position.dx - center;
     final dy = position.dy - center;
